@@ -58,6 +58,15 @@ circle wallet balance --address <agent-wallet-address> --chain ARC-TESTNET --out
 7. Restart the service.
 8. Check `/health`, `/state`, and `/agent-wallet`.
 
+Nebius checks:
+
+```bash
+curl https://YOUR-RAILWAY-DOMAIN/nebius/health
+curl https://YOUR-RAILWAY-DOMAIN/nebius/health?live=1
+```
+
+The first command checks whether the deployed API key can see `deepseek-ai/DeepSeek-V4-Pro`. The second makes one tiny live completion request and will show `402` if the key/project budget cannot spend.
+
 ## Important
 
 The agent loop buys paid signals. Do not leave it running with a broken Circle/Nebius/Hyperliquid setup, because it can keep paying for signal calls while failing later in the tick.

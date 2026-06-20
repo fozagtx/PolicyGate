@@ -43,6 +43,25 @@ type ReviewInput = {
   agentWalletSpend: Record<string, unknown> | null;
 };
 
+export interface NebiusHealth {
+  enabled: boolean;
+  base_url: string;
+  model: string;
+  api_key_present: boolean;
+  models_endpoint: {
+    ok: boolean;
+    status: number | null;
+    model_available: boolean;
+    available_model_count: number | null;
+    error: string | null;
+  };
+  live_completion?: {
+    ok: boolean;
+    status: number | null;
+    error: string | null;
+  };
+}
+
 export class NebiusRiskAgent {
   private provider: OpenAICompatibleProvider<string, string, string, string>;
   private model: string;
@@ -159,6 +178,50 @@ export function isNebiusVetoEnabled(): boolean {
   return appConfig.nebius.vetoEnabled;
 }
 
+export async function checkNebiusHealth(liveCompletion: boolean = false): Promise<NebiusHealth> {
+  const apiKey = secretEnv("NEBIUS_API_KEY");
+  const health: NebiusHealth = {
+    enabled: appConfig.nebius.enabled,
+    base_url: appConfig.nebius.baseUrl,
+    model: appConfig.nebius.model,
+    api_key_present: apiKey.length > 0,
+    models_endpoint: {
+      ok: false,
+      status: null,
+      model_available: false,
+      available_model_count: null,
+      error: null,
+    },
+  };
+
+  const baseUrl = appConfig.nebius.baseUrl.replace(/\/+$/, "");
+  try {
+    const response = await fetch(`${baseUrl}/models`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: AbortSignal.timeout(appConfig.nebius.timeoutMs),
+    });
+    health.models_endpoint.status = response.status;
+    const body = await response.text();
+    if (!response.ok) {
+      health.models_endpoint.error = sanitizeBody(body) || response.statusText;
+    } else {
+      const parsed = JSON.parse(body) as { data?: Array<{ id?: string }> };
+      const modelIds = Array.isArray(parsed.data) ? parsed.data.map((model) => model.id).filter(Boolean) : [];
+      health.models_endpoint.ok = true;
+      health.models_endpoint.available_model_count = modelIds.length;
+      health.models_endpoint.model_available = modelIds.includes(appConfig.nebius.model);
+    }
+  } catch (error) {
+    health.models_endpoint.error = error instanceof Error ? error.message : String(error);
+  }
+
+  if (liveCompletion) {
+    health.live_completion = await checkLiveCompletion(baseUrl, apiKey);
+  }
+
+  return health;
+}
+
 function buildReviewContext(input: ReviewInput): Record<string, unknown> {
   return {
     signal: input.signal,
@@ -227,4 +290,43 @@ function formatProviderError(error: unknown): string {
   const body = typeof err.responseBody === "string" ? err.responseBody : "";
   const message = typeof err.message === "string" ? err.message : "unknown provider error";
   return `${status}${message}${body ? ` - ${body.slice(0, 300)}` : ""}`;
+}
+
+async function checkLiveCompletion(baseUrl: string, apiKey: string): Promise<NonNullable<NebiusHealth["live_completion"]>> {
+  try {
+    const response = await fetch(`${baseUrl}/chat/completions`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "content-type": "application/json",
+      },
+      signal: AbortSignal.timeout(appConfig.nebius.timeoutMs),
+      body: JSON.stringify({
+        model: appConfig.nebius.model,
+        temperature: 0,
+        max_tokens: 16,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: "Return only JSON." },
+          { role: "user", content: "{\"ok\":true}" },
+        ],
+      }),
+    });
+    const body = await response.text();
+    return {
+      ok: response.ok,
+      status: response.status,
+      error: response.ok ? null : sanitizeBody(body) || response.statusText,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: null,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+function sanitizeBody(value: string): string {
+  return value.replace(/Bearer\s+[A-Za-z0-9._-]+/g, "Bearer [redacted]").slice(0, 500);
 }

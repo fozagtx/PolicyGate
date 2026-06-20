@@ -12,6 +12,7 @@ import type { BridgeResult, CircleBridgeTransferResult } from "./types.js";
 import { buildRealityReport } from "./reality.js";
 import { appConfig } from "./config.js";
 import type { AgentWalletSpend } from "./circle-agent-wallet.js";
+import { checkNebiusHealth } from "./nebius.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const STATIC_DIR = path.resolve(__dirname, "../client");
@@ -59,6 +60,16 @@ export function buildApp(options: DashboardOptions): express.Express {
 
   app.get("/reality", (_req: Request, res: Response) => {
     res.json(buildRealityReport());
+  });
+
+  app.get("/nebius/health", async (req: Request, res: Response) => {
+    const live = req.query.live === "1" || req.query.live === "true";
+    try {
+      res.json(await checkNebiusHealth(live));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      res.status(500).json({ ok: false, error: message.slice(0, 300) });
+    }
   });
 
   app.get("/agent-wallet", async (_req: Request, res: Response) => {
