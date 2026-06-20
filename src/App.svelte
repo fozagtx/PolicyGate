@@ -286,14 +286,14 @@
           <div class="panel-head">
             <div class="panel-title">Runtime checks</div>
             <button class="copy-btn compact" type="button" disabled={nebiusBusy === "live"} aria-busy={nebiusBusy === "live"} onclick={() => void refreshNebiusHealth(true)}>
-              Test Nebius
+              Verify Nebius
             </button>
           </div>
           <div class="check-list">
             <div class="check-row"><span>HL account</span><strong class={accountReady ? "pos" : "warn"}>{accountReady ? "funded" : "empty"}</strong></div>
             <div class="check-row"><span>Agent wallet</span><strong class={walletReady ? "pos" : "warn"}>{walletReady ? wallet.chain : "missing"}</strong></div>
             <div class="check-row"><span>Nebius model</span><strong class={nebiusReady ? "pos" : "warn"}>{nebiusReady ? "available" : "checking"}</strong></div>
-            <div class="check-row"><span>Live Nebius</span><strong class={nebiusLiveOk === false ? "neg" : nebiusLiveOk ? "pos" : "muted"}>{nebiusLiveOk === null ? "not tested" : nebiusLiveOk ? "ok" : "blocked"}</strong></div>
+            <div class="check-row"><span>Live Nebius</span><strong class={nebiusLiveOk === false ? "neg" : nebiusLiveOk ? "pos" : "muted"}>{nebiusLiveOk === null ? "not checked" : nebiusLiveOk ? "ok" : "blocked"}</strong></div>
           </div>
         </aside>
       </section>
