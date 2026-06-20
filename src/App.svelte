@@ -50,16 +50,16 @@
   $: nebiusReady = Boolean(nebiusHealth?.models_endpoint?.model_available);
   $: nebiusLiveOk = nebiusHealth?.live_completion ? Boolean(nebiusHealth.live_completion.ok) : null;
   $: loopBlockedReason = !accountReady
-    ? "HL account empty"
+    ? "HL_EMPTY"
     : !walletReady
-      ? "wallet unavailable"
+      ? "WALLET_MISSING"
       : !nebiusReady
-        ? "Nebius model unavailable"
+        ? "NEBIUS_MODEL_MISSING"
         : risk.kill_switch_tripped
-          ? "risk halted"
+          ? "RISK_HALTED"
           : "";
   $: loopState = loopBlockedReason ? "blocked" : "ready";
-  $: loopStateText = loopBlockedReason || "ready for paid signal";
+  $: loopStateText = loopBlockedReason || "READY";
 
   onMount(() => {
     void refresh();
@@ -228,7 +228,7 @@
     <header class="topbar">
       <div class="brand">
         <div class="logo">HYPERFLOW</div>
-        <div class="brand-sub">Agent commerce terminal</div>
+        <div class="brand-sub">Runtime</div>
       </div>
       <div class="top-actions" aria-label="Runtime status">
         <span class="mini-stat">network <strong>{state?.network || "testnet"}</strong></span>
@@ -254,7 +254,7 @@
           <div class="panel-head">
             <div>
               <div class="panel-title">Agent loop</div>
-              <div class="panel-meta">paid signal -> AI review -> risk -> execution</div>
+              <div class="panel-meta">x402 -> Nebius -> risk -> HL</div>
             </div>
             <span class="badge {loopState === 'ready' ? 'success' : 'pending'}">{loopStateText}</span>
           </div>
@@ -271,13 +271,13 @@
             </div>
             <div class="stage {nebiusLiveOk === false ? 'blocked' : nebiusReady ? 'ready' : 'pending'}">
               <span>Nebius agent</span>
-              <strong>{nebiusLiveOk === false ? "402" : nebiusReady ? "V4 Pro" : "--"}</strong>
-              <small>{nebiusHealth?.models_endpoint?.error ? short(nebiusHealth.models_endpoint.error, 24, 18) : nebiusHealth?.model || "checking"}</small>
+              <strong>{nebiusLiveOk === false ? "HTTP 402" : nebiusReady ? "V4 Pro" : "--"}</strong>
+              <small>{nebiusLiveOk === false ? "PAYMENT_REQUIRED" : nebiusHealth?.models_endpoint?.error ? short(nebiusHealth.models_endpoint.error, 24, 18) : nebiusHealth?.model || "CHECKING"}</small>
             </div>
             <div class="stage {accountReady ? 'ready' : 'blocked'}">
               <span>Hyperliquid</span>
               <strong>{money(account.value_usd)}</strong>
-              <small>{accountReady ? "capital online" : "needs testnet funds"}</small>
+              <small>{accountReady ? "FUNDED" : "HL_EMPTY"}</small>
             </div>
           </div>
         </section>
@@ -293,7 +293,7 @@
             <div class="check-row"><span>HL account</span><strong class={accountReady ? "pos" : "warn"}>{accountReady ? "funded" : "empty"}</strong></div>
             <div class="check-row"><span>Agent wallet</span><strong class={walletReady ? "pos" : "warn"}>{walletReady ? wallet.chain : "missing"}</strong></div>
             <div class="check-row"><span>Nebius model</span><strong class={nebiusReady ? "pos" : "warn"}>{nebiusReady ? "available" : "checking"}</strong></div>
-            <div class="check-row"><span>Live Nebius</span><strong class={nebiusLiveOk === false ? "neg" : nebiusLiveOk ? "pos" : "muted"}>{nebiusLiveOk === null ? "not checked" : nebiusLiveOk ? "ok" : "blocked"}</strong></div>
+            <div class="check-row"><span>Live Nebius</span><strong class={nebiusLiveOk === false ? "neg" : nebiusLiveOk ? "pos" : "muted"}>{nebiusLiveOk === null ? "unchecked" : nebiusLiveOk ? "ok" : "HTTP 402"}</strong></div>
           </div>
         </aside>
       </section>
