@@ -11,7 +11,8 @@
     "dev": "tsx watch src/loop.ts",
     "serve": "tsx src/serve.ts",
     "cctp": "tsx src/cctp.ts",
-    "bridge:agent-wallet": "tsx src/circle-bridge.ts"
+    "bridge:agent-wallet": "tsx src/circle-bridge.ts",
+    "hl:fund": "tsx src/hyperliquid-funding.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.73",

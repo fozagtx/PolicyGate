@@ -108,6 +108,41 @@ Put the Agent Wallet address and chain in `config/hyperflow.config.json` under `
 
 For Hyperliquid, create an API wallet in the Hyperliquid testnet UI, authorize it, then put the API wallet private key in `HL_API_WALLET_PK`. The public master account address goes in `config.hyperliquid.masterAddress`.
 
+## Funding Hyperliquid Testnet
+
+`HL_EMPTY` means Hyperliquid reports `account_value_usd=0` for `config.hyperliquid.masterAddress`. It does not mean the env file is empty.
+
+Check the funding state:
+
+```bash
+npm run hl:fund -- balances
+```
+
+Hyperliquid testnet collateral is credited only after a valid Hyperliquid testnet deposit or drip. The helper intentionally refuses to treat wallet USDC balances as Hyperliquid collateral until Hyperliquid's own API reports `account_value_usd > 0`:
+
+| Balance | Purpose |
+| --- | --- |
+| Arc Testnet Circle USDC | source funds for Circle CCTP demos |
+| Arbitrum Sepolia Circle USDC | preferred Hyperliquid CCTP deposit source |
+| Arbitrum Sepolia Hyperliquid `USDC2` | guarded Bridge2 fallback |
+| Arbitrum Sepolia legacy Hyperliquid USDC | older testnet faucet token; not treated as collateral |
+
+Deposit Arbitrum Sepolia Circle USDC through Hyperliquid's CCTP route:
+
+```bash
+npm run hl:fund -- deposit 5
+```
+
+Then poll the Hyperliquid account:
+
+```bash
+npm run hl:fund -- poll
+```
+
+Important testnet limitation: Circle's HyperCore CCTP docs state that HyperCore testnet recipients must already exist on HyperCore mainnet; transfers to addresses without mainnet state can fail silently. If `npm run hl:fund -- balances` still shows `hyperliquid_account_value_usd=0.0` after a successful CCTP transaction, use a master wallet that already has mainnet Hyperliquid state or make a small mainnet Hyperliquid deposit from the same address, then retry testnet funding.
+
+The signer must match `config.hyperliquid.masterAddress`; otherwise Hyperliquid credits a different account and the dashboard remains blocked.
+
 ## Run
 
 ```bash

@@ -36,6 +36,18 @@ export interface AppConfig {
     symbol: string;
     masterAddress: string;
   };
+  hyperliquidBridge: {
+    bridge2Address: string;
+    usdc2Address: string;
+    legacyUsdcAddress: string;
+    circleUsdcArbitrumSepoliaAddress: string;
+    cctpExtensionAddress: string;
+    cctpDestinationCaller: string;
+    cctpDestinationDomain: number;
+    cctpMaxFeeUsdc: number;
+    cctpMinFinalityThreshold: number;
+    minDepositUsdc: number;
+  };
   risk: {
     confidenceThreshold: number;
     takeProfitPct: number;
