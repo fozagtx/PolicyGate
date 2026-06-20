@@ -23,6 +23,8 @@
   let copyStatus = "";
   let confirmAction: ConfirmAction | null = null;
   let actionBusy = "";
+  let nebiusHealth: AnyRecord | null = null;
+  let nebiusBusy = "";
 
   $: now = state?.now_ms || Date.now();
   $: account = state?.account || {};
@@ -43,9 +45,25 @@
   $: lossLimit = Math.abs(Number(risk.daily_loss_threshold_usd || 0));
   $: pnlFillPct = lossLimit > 0 ? Math.min(100, Math.max(0, ((lossLimit + dailyPnl) / lossLimit) * 100)) : 0;
   $: pnlFillColor = pnlFillPct > 50 ? "var(--green)" : pnlFillPct > 20 ? "var(--amber)" : "var(--red)";
+  $: accountReady = Number(account.value_usd || 0) > 0;
+  $: walletReady = Boolean(wallet.address && wallet.chain);
+  $: nebiusReady = Boolean(nebiusHealth?.models_endpoint?.model_available);
+  $: nebiusLiveOk = nebiusHealth?.live_completion ? Boolean(nebiusHealth.live_completion.ok) : null;
+  $: loopBlockedReason = !accountReady
+    ? "HL account empty"
+    : !walletReady
+      ? "wallet unavailable"
+      : !nebiusReady
+        ? "Nebius model unavailable"
+        : risk.kill_switch_tripped
+          ? "risk halted"
+          : "";
+  $: loopState = loopBlockedReason ? "blocked" : "ready";
+  $: loopStateText = loopBlockedReason || "ready for paid signal";
 
   onMount(() => {
     void refresh();
+    void refreshNebiusHealth(false);
     const timer = window.setInterval(() => void refresh(), REFRESH_MS);
     return () => window.clearInterval(timer);
   });
@@ -66,6 +84,25 @@
       errorText = error instanceof Error ? error.message : String(error);
     } finally {
       refreshing = false;
+    }
+  }
+
+  async function refreshNebiusHealth(live = false): Promise<void> {
+    nebiusBusy = live ? "live" : "models";
+    try {
+      const response = await fetch(`/nebius/health${live ? "?live=1" : ""}`, { cache: "no-store" });
+      nebiusHealth = await response.json() as AnyRecord;
+    } catch (error) {
+      nebiusHealth = {
+        enabled: true,
+        models_endpoint: {
+          ok: false,
+          model_available: false,
+          error: error instanceof Error ? error.message : String(error),
+        },
+      };
+    } finally {
+      nebiusBusy = "";
     }
   }
 
@@ -191,15 +228,15 @@
     <header class="topbar">
       <div class="brand">
         <div class="logo">HYPERFLOW</div>
-        <div class="brand-sub">Circle Agent Wallet operations dashboard</div>
+        <div class="brand-sub">Agent commerce terminal</div>
       </div>
       <div class="top-actions" aria-label="Runtime status">
         <span class="mini-stat">network <strong>{state?.network || "testnet"}</strong></span>
         <span class="mini-stat">uptime <strong>{duration(state?.uptime_seconds)}</strong></span>
-        <span class="mini-stat">refreshed <strong>{clock(now)}</strong></span>
+        <span class="mini-stat">sync <strong>{clock(now)}</strong></span>
         <span class="status-pill"><span class="dot {connectionMode}"></span><strong>{connectionText}</strong></span>
         <button class="refresh-btn" type="button" disabled={refreshing} aria-busy={refreshing} onclick={() => void refresh()}>
-          {refreshing ? "Refreshing" : "Refresh"}
+          Sync
         </button>
       </div>
     </header>
@@ -212,6 +249,55 @@
     {/if}
 
     <main>
+      <section class="hero-grid" aria-label="Agent readiness">
+        <section class="panel command-panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">Agent loop</div>
+              <div class="panel-meta">paid signal -> AI review -> risk -> execution</div>
+            </div>
+            <span class="badge {loopState === 'ready' ? 'success' : 'pending'}">{loopStateText}</span>
+          </div>
+          <div class="stage-grid">
+            <div class="stage {walletReady ? 'ready' : 'blocked'}">
+              <span>Circle wallet</span>
+              <strong>{walletReady ? wallet.chain : "--"}</strong>
+              <small>{short(wallet.address, 10, 8)}</small>
+            </div>
+            <div class="stage {paidSpend.length ? 'ready' : 'pending'}">
+              <span>Paid x402</span>
+              <strong>{integer(paidSpend.length)}</strong>
+              <small>{money(spendTotal, 4)} spent</small>
+            </div>
+            <div class="stage {nebiusLiveOk === false ? 'blocked' : nebiusReady ? 'ready' : 'pending'}">
+              <span>Nebius agent</span>
+              <strong>{nebiusLiveOk === false ? "402" : nebiusReady ? "V4 Pro" : "--"}</strong>
+              <small>{nebiusHealth?.models_endpoint?.error ? short(nebiusHealth.models_endpoint.error, 24, 18) : nebiusHealth?.model || "checking"}</small>
+            </div>
+            <div class="stage {accountReady ? 'ready' : 'blocked'}">
+              <span>Hyperliquid</span>
+              <strong>{money(account.value_usd)}</strong>
+              <small>{accountReady ? "capital online" : "needs testnet funds"}</small>
+            </div>
+          </div>
+        </section>
+
+        <aside class="panel diagnostics-panel">
+          <div class="panel-head">
+            <div class="panel-title">Runtime checks</div>
+            <button class="copy-btn compact" type="button" disabled={nebiusBusy === "live"} aria-busy={nebiusBusy === "live"} onclick={() => void refreshNebiusHealth(true)}>
+              Test Nebius
+            </button>
+          </div>
+          <div class="check-list">
+            <div class="check-row"><span>HL account</span><strong class={accountReady ? "pos" : "warn"}>{accountReady ? "funded" : "empty"}</strong></div>
+            <div class="check-row"><span>Agent wallet</span><strong class={walletReady ? "pos" : "warn"}>{walletReady ? wallet.chain : "missing"}</strong></div>
+            <div class="check-row"><span>Nebius model</span><strong class={nebiusReady ? "pos" : "warn"}>{nebiusReady ? "available" : "checking"}</strong></div>
+            <div class="check-row"><span>Live Nebius</span><strong class={nebiusLiveOk === false ? "neg" : nebiusLiveOk ? "pos" : "muted"}>{nebiusLiveOk === null ? "not tested" : nebiusLiveOk ? "ok" : "blocked"}</strong></div>
+          </div>
+        </aside>
+      </section>
+
       <section class="metrics" aria-label="Agent metrics">
         <article class="panel metric">
           <div class="panel-title">Account value</div>
@@ -258,7 +344,7 @@
       <section class="panel" aria-label="Circle Agent Wallet">
         <div class="panel-head">
           <div class="panel-title">Circle Agent Wallet</div>
-          <div class="panel-meta">payment identity and spend cap</div>
+          <div class="panel-meta">payment identity</div>
         </div>
         <div class="wallet-card">
           <div>
@@ -406,6 +492,7 @@
         </aside>
       </section>
 
+      <section class="ops-grid" aria-label="Funding and bridge operations">
       {#if cctp.enabled}
         <section class="panel" aria-label="CCTP bridges">
           <div class="panel-head">
@@ -500,6 +587,7 @@
           </div>
         </section>
       {/if}
+      </section>
 
       <div class="screen-reader" aria-live="polite">{copyStatus}</div>
     </main>
