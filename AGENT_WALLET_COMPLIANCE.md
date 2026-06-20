@@ -19,6 +19,7 @@ HyperFlow uses Circle Agent Wallet in the TypeScript agent workflow.
 | Wallet action | `circle services pay` from [circle-agent-wallet.ts](src/circle-agent-wallet.ts) |
 | Crosschain wallet action | `circle bridge transfer` from [circle-bridge.ts](src/circle-bridge.ts) for Arc Testnet -> Base Sepolia Agent Wallet top-ups |
 | Agent workflow | [loop.ts](src/loop.ts) buys a signal, records spend, then decides/trades |
+| Agent framework starter-kit path | Vercel AI SDK `ToolLoopAgent` in [nebius.ts](src/nebius.ts), using Nebius DeepSeek V4 Pro through an OpenAI-compatible provider |
 | Budget / cap | `config.circleAgentWallet.maxUsdcPerCall` maps to `--max-amount` |
 | Receipt / ledger | SQLite table `agent_wallet_spend_ledger` |
 | User-visible API | `GET /agent-wallet` and `/state.agent_wallet` |

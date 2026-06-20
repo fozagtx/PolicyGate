@@ -125,6 +125,11 @@ export class HLExecutor {
   async getMidPrice(symbol?: string): Promise<number> {
     const sym = symbol ?? hlSymbol;
     const allMids = await this.sdk.info.getAllMids();
-    return parseFloat(allMids[sym] ?? "0");
+    const candidates = [sym, `${sym}-PERP`, `${sym}-SPOT`];
+    for (const candidate of candidates) {
+      const px = parseFloat(allMids[candidate] ?? "");
+      if (Number.isFinite(px) && px > 0) return px;
+    }
+    throw new Error(`Hyperliquid mid price not found for ${sym}; tried ${candidates.join(", ")}`);
   }
 }

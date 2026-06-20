@@ -100,6 +100,20 @@ export function decide(
 
   // Rule 4: position sizing
   const accountValue = portfolio.account_value_usd;
+  if (!Number.isFinite(market.mid_px) || market.mid_px <= 0) {
+    trace.step("market_price_check", "market.mid_px > 0", false, market.mid_px);
+    trace.setAction(holdAction("invalid_market"));
+    trace.freeze();
+    return trace;
+  }
+
+  if (!Number.isFinite(accountValue) || accountValue <= 0) {
+    trace.step("account_value_check", "portfolio.account_value_usd > 0", false, accountValue);
+    trace.setAction(holdAction("insufficient_account_value"));
+    trace.freeze();
+    return trace;
+  }
+
   const edge = signal.confidence - 0.5;
   const variance = Math.max(0.001, market.realized_vol_1h_pct * signal.vol_ratio);
   const kellyPct = (kellyFraction * edge) / variance;

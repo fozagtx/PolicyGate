@@ -7,19 +7,22 @@
     "build": "tsc && npm run build:client",
     "build:client": "vite build --config vite.config.ts",
     "start": "tsx src/loop.ts",
+    "start:prod": "node dist/loop.js",
     "dev": "tsx watch src/loop.ts",
     "serve": "tsx src/serve.ts",
     "cctp": "tsx src/cctp.ts",
     "bridge:agent-wallet": "tsx src/circle-bridge.ts"
   },
   "dependencies": {
+    "@ai-sdk/openai-compatible": "^2.0.51",
+    "ai": "^6.0.208",
     "better-sqlite3": "^11.6.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.0",
     "ethers": "^6.13.0",
     "express": "^4.21.0",
     "hyperliquid": "^1.0.0",
-    "openai": "^4.70.0"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.1.2",

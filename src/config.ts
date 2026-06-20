@@ -91,6 +91,10 @@ function loadConfig(): AppConfig {
   }
 
   const raw = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf8")) as AppConfig;
+  const port = Number(process.env.PORT);
+  if (Number.isInteger(port) && port > 0) {
+    raw.process.statePort = port;
+  }
   return raw;
 }
 

@@ -17,7 +17,7 @@ import { alert, AlertLevel, info as tgInfo } from "./telegram-alerts.js";
 import { buildApp } from "./dashboard.js";
 import { CCTPBridge } from "./cctp.js";
 import { CircleBridgeClient } from "./circle-bridge.js";
-import { NebiusReasoner, isNebiusEnabled, isNebiusVetoEnabled, type NebiusReview } from "./nebius.js";
+import { NebiusRiskAgent, isNebiusEnabled, isNebiusVetoEnabled, type NebiusReview } from "./nebius.js";
 import type {
   AgentCounters,
   BridgeResult,
@@ -57,7 +57,7 @@ class AgentLoop {
   private circleBridge: CircleBridgeClient | null = null;
   private circleBridgeLock = new AsyncLock();
   private circleBridgeLastTriggerAt = 0;
-  private nebius: NebiusReasoner | null = null;
+  private nebius: NebiusRiskAgent | null = null;
 
   private initialState: any = null;
 
@@ -68,8 +68,8 @@ class AgentLoop {
     this.risk = risk;
 
     if (isNebiusEnabled()) {
-      this.nebius = new NebiusReasoner();
-      console.log(`Nebius reasoner enabled: model=${this.nebius.modelName}`);
+      this.nebius = new NebiusRiskAgent();
+      console.log(`Nebius AI SDK agent enabled: model=${this.nebius.modelName}`);
     }
 
     try {
@@ -289,6 +289,13 @@ class AgentLoop {
       return;
     }
 
+    const state = await this.executor.getState();
+    const accountValue = Number(state.marginSummary?.accountValue ?? 0);
+    if (!Number.isFinite(accountValue) || accountValue <= 0) {
+      console.warn("Hyperliquid account value is zero; skipping paid signal fetch until the account is funded");
+      return;
+    }
+
     let signal: Signal | null;
     let spend: AgentWalletSpend | null = null;
     try {
@@ -309,7 +316,6 @@ class AgentLoop {
       `[#${this.signalsReceived}] signal: ${signal.symbol} ${signal.direction} conf=${signal.confidence.toFixed(3)} vol=${signal.vol_ratio.toFixed(2)} tx=${signal.tx_hash ? `${signal.tx_hash.slice(0, 10)}...` : "?"}`,
     );
 
-    const state = await this.executor.getState();
     const midPx = await this.executor.getMidPrice(signal.symbol);
     const portfolio = buildPortfolio(state, midPx, this.risk.dailyPnlUsd, this.lastTradeAt);
     const market = buildMarket(midPx, signal.vol_ratio);
@@ -320,7 +326,7 @@ class AgentLoop {
     }
     console.log(`decision: ${trace.toTelegramSummary()}`);
 
-    const nebiusReview = await this.reviewWithNebius(signal, portfolio, market, trace.action);
+    const nebiusReview = await this.reviewWithNebius(signal, portfolio, market, trace.action, spend);
     if (nebiusReview && !nebiusReview.approved && isNebiusVetoEnabled()) {
       console.warn(`Nebius VETO: ${nebiusReview.rationale}`);
       await alert(AlertLevel.WARN, `Nebius vetoed trade: ${nebiusReview.rationale}`);
@@ -372,6 +378,7 @@ class AgentLoop {
     portfolio: PortfolioState,
     market: MarketState,
     action: NonNullable<ReturnType<typeof decide>["action"]>,
+    spend: AgentWalletSpend | null,
   ): Promise<NebiusReview | null> {
     if (!this.nebius) return null;
 
@@ -381,6 +388,7 @@ class AgentLoop {
       market,
       action,
       riskSnapshot: this.risk.snapshot(),
+      agentWalletSpend: spend as unknown as Record<string, unknown> | null,
     });
     console.log(
       `Nebius review: approved=${review.approved} risk=${review.risk_level} latency=${review.latency_ms}ms ${review.rationale}`,

@@ -64,7 +64,7 @@
   "nebius": {
     "enabled": true,
     "baseUrl": "https://api.tokenfactory.nebius.com/v1/",
-    "model": "deepseek-ai/DeepSeek-R1-0528",
+    "model": "deepseek-ai/DeepSeek-V4-Pro",
     "vetoEnabled": true,
     "timeoutMs": 10000,
     "maxTokens": 500,

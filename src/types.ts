@@ -50,6 +50,8 @@ export type HoldReason =
   | "min_notional"
   | "leverage_cap"
   | "cooldown"
+  | "invalid_market"
+  | "insufficient_account_value"
   | "manual_halt";
 
 export interface ActionOutput {

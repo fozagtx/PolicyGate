@@ -13,7 +13,7 @@ flowchart LR
   Pay --> Signal[Paid x402 Signal Service]
   Pay --> Ledger[(SQLite Spend Ledger)]
   Signal --> Decision[Decision Engine]
-  Decision --> Nebius[Nebius Review]
+  Decision --> Nebius[Vercel AI SDK Agent<br/>Nebius DeepSeek V4 Pro]
   Nebius --> Risk[Risk Gate]
   Risk --> HL[Hyperliquid Execution]
   Risk --> Hold[Hold / Blocked Tick]
@@ -28,7 +28,8 @@ flowchart LR
 | --- | --- | --- |
 | Circle Agent Wallet | ✓ | `circleAgentWallet.address` plus Circle CLI agent session |
 | Wallet action | ✓ | `circle services pay` in [src/circle-agent-wallet.ts](src/circle-agent-wallet.ts) |
-| Agent workflow | ✓ | paid signal -> Nebius review -> risk gate -> Hyperliquid action |
+| Agent framework | ✓ | Vercel AI SDK `ToolLoopAgent` in [src/nebius.ts](src/nebius.ts) |
+| Agent workflow | ✓ | paid signal -> AI SDK Nebius agent review -> risk gate -> Hyperliquid action |
 | Budget cap | ✓ | `circleAgentWallet.maxUsdcPerCall` maps to `--max-amount` |
 | Receipt / spend ledger | ✓ | SQLite `agent_wallet_spend_ledger` table and dashboard view |
 | Crosschain support | ✓ | Circle bridge and CCTP routes for configured testnet flows |
@@ -41,7 +42,7 @@ flowchart LR
 | --- | --- | --- |
 | Circle payment | ✓ | pays the live x402 signal endpoint |
 | Spend logging | ✓ | stores seller, chain, amount, tx hash, and raw receipt |
-| Nebius review | ✓ | blocks the tick when the live review fails |
+| Nebius agent review | ✓ | DeepSeek V4 Pro through Vercel AI SDK; blocks the tick when the live review fails |
 | Hyperliquid execution | ✓ | submits approved actions through the TypeScript SDK |
 | Dashboard | ✓ | shows wallet state, ledger, decisions, and bridge history |
 | Agent Wallet bridge | ✓ | Arc Testnet -> Base Sepolia through Circle CLI |
@@ -60,7 +61,7 @@ Public runtime settings are in [config/hyperflow.config.json](config/hyperflow.c
 | `hyperliquid` | network, symbol, and master address |
 | `risk` | confidence, leverage, loss, and position limits |
 | `cctp` | Arc Testnet -> Arbitrum Sepolia timing and recipient |
-| `nebius` | OpenAI-compatible base URL, model, and review limits |
+| `nebius` | OpenAI-compatible base URL, DeepSeek V4 Pro model, and review limits |
 | `process` | SQLite path, dashboard port, and loop interval |
 
 Secrets are in [.env.example](.env.example). Keep the real `.env` local and uncommitted:
@@ -119,7 +120,7 @@ Useful endpoints:
 
 - [src/loop.ts](src/loop.ts): agent loop from paid signal to trade execution.
 - [src/circle-agent-wallet.ts](src/circle-agent-wallet.ts): Circle CLI Agent Wallet payment wrapper and spend ledger.
-- [src/nebius.ts](src/nebius.ts): live Nebius OpenAI-compatible review call.
+- [src/nebius.ts](src/nebius.ts): Vercel AI SDK `ToolLoopAgent` using Nebius DeepSeek V4 Pro.
 - [src/executor.ts](src/executor.ts): Hyperliquid TypeScript SDK execution.
 - [src/risk.ts](src/risk.ts): budget, loss, leverage, and liquidation guardrails.
 - [src/cctp.ts](src/cctp.ts): direct Circle CCTP V2 Arc Testnet to Arbitrum Sepolia route.
@@ -135,6 +136,12 @@ pm2 logs hyperflow
 pm2 restart hyperflow
 pm2 stop hyperflow
 ```
+
+## Deploy
+
+Railway is supported through the root [Dockerfile](Dockerfile). Add a Railway Volume at `/data` so SQLite and the Circle CLI agent-wallet session persist across deploys.
+
+See [docs/DEPLOY_RAILWAY.md](docs/DEPLOY_RAILWAY.md) for the deploy checklist.
 
 ## Circle References
 
