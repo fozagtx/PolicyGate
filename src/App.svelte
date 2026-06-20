@@ -395,7 +395,7 @@
             <div class="table-wrap">
               <div class="table">
                 <div class="table-row header trade-row">
-                  <span>time</span><span>trace</span><span>action</span><span>size</span><span>price</span><span>lev</span><span>notes</span><span>paid signal</span>
+                  <span>time</span><span>trace</span><span>action</span><span>size</span><span>price</span><span>lev</span><span>notes</span><span>sources</span><span>paid signal</span>
                 </div>
                 {#if !state}
                   <div class="loading" aria-label="Loading trade tape"></div>
@@ -404,6 +404,7 @@
                 {:else}
                   {#each trades as trace}
                     {@const paidTx = txHref(trace.payment_tx_hash, ARC_EXPLORER)}
+                    {@const sources = Array.isArray(trace.tavily_sources) ? trace.tavily_sources : []}
                     <div class="table-row trade-row">
                       <span class="muted">{clock(trace.created_at_ms)}</span>
                       <span class="muted">{trace.trace_id_short || "--"}</span>
@@ -418,6 +419,13 @@
                           TP {money(trace.tp_px, 0)} / SL {money(trace.sl_px, 0)}
                         {:else}
                           --
+                        {/if}
+                      </span>
+                      <span>
+                        {#if sources.length}
+                          <a href={sources[0].url} target="_blank" rel="noopener noreferrer" title={sources[0].title || sources[0].url}>{integer(sources.length)} src</a>
+                        {:else}
+                          <span class="quiet">--</span>
                         {/if}
                       </span>
                       <span>
@@ -463,11 +471,13 @@
               {#each traces.slice(0, 14) as trace}
                 {@const confidence = Number(trace.signal_confidence || 0)}
                 {@const pct = Math.round(Math.max(0, Math.min(1, confidence)) * 100)}
+                {@const sourceCount = Number(trace.tavily_source_count || 0)}
                 <div class="signal-row">
                   <div class="signal-main">
                     <span class="muted">{clock(trace.created_at_ms)}</span>
                     <span class="badge {classForSide(trace.side)}">{String(trace.side || "hold").toUpperCase()}</span>
                     {#if trace.hold_reason}<span class="quiet">{trace.hold_reason}</span>{/if}
+                    {#if sourceCount > 0}<span class="chip">Web <strong>{integer(sourceCount)}</strong></span>{/if}
                     {#if trace.nebius_review}<span class="chip">Review <strong>{trace.nebius_review.approved ? "ok" : "veto"}</strong></span>{/if}
                   </div>
                   <div class="conf" aria-label={`Signal confidence ${pct} percent`}>

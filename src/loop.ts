@@ -23,12 +23,14 @@ import type {
   BridgeResult,
   CircleBridgeTransferResult,
   ExecutionResult,
+  MarketResearchEvidence,
   MarketState,
   PortfolioState,
   Signal,
 } from "./types.js";
 import { appConfig, requiredConfigString, secretEnv } from "./config.js";
 import { CircleAgentWalletClient, CircleAgentWalletError, type AgentWalletSpend } from "./circle-agent-wallet.js";
+import { createTavilyMarketResearchClient, TavilyMarketResearchError, type TavilyMarketResearchClient } from "./tavily.js";
 
 const POLL_INTERVAL = appConfig.process.agentPollIntervalSeconds;
 const TIME_STOP_SECONDS = appConfig.risk.timeStopSeconds;
@@ -79,6 +81,8 @@ class AgentLoop {
   private circleBridgeLock = new AsyncLock();
   private circleBridgeLastTriggerAt = 0;
   private nebius: NebiusRiskAgent | null = null;
+  private marketResearch: TavilyMarketResearchClient | null = null;
+  private marketResearchInitError: string | null = null;
 
   private initialState: any = null;
 
@@ -91,6 +95,21 @@ class AgentLoop {
     if (isNebiusEnabled()) {
       this.nebius = new NebiusRiskAgent();
       console.log(`Nebius AI SDK agent enabled: model=${this.nebius.modelName}`);
+    }
+
+    try {
+      this.marketResearch = createTavilyMarketResearchClient();
+      if (this.marketResearch) {
+        console.log(
+          `Tavily market research enabled: topic=${appConfig.tavily.topic} depth=${appConfig.tavily.searchDepth} max=${appConfig.tavily.maxResults}`,
+        );
+      } else {
+        console.warn("Tavily market research disabled by config.tavily.enabled=false");
+      }
+    } catch (e) {
+      this.marketResearchInitError = sanitizeError(e);
+      console.error("Tavily market research init failed:", this.marketResearchInitError);
+      this.marketResearch = null;
     }
 
     try {
@@ -327,6 +346,10 @@ class AgentLoop {
       this.setLoopStatus("BLOCKED", "HL_EMPTY", `account_value_usd=${Number.isFinite(accountValue) ? accountValue : "NaN"}`);
       return;
     }
+    if (appConfig.tavily.enabled && !this.marketResearch) {
+      this.setLoopStatus("BLOCKED", "TAVILY_CONFIG_ERROR", this.marketResearchInitError ?? "market_research_client_unavailable", true);
+      return;
+    }
 
     let signal: Signal | null;
     let spend: AgentWalletSpend | null = null;
@@ -366,10 +389,28 @@ class AgentLoop {
     this.loopStatus.last_decision_at_ms = Date.now();
     console.log(`decision: ${trace.toTelegramSummary()}`);
 
+    let marketResearch: MarketResearchEvidence | null = null;
+    try {
+      marketResearch = await this.fetchMarketResearch(signal, market, trace.action);
+    } catch (e) {
+      const message = sanitizeError(e);
+      console.warn("Tavily market research failed:", message);
+      this.setLoopStatus("BLOCKED", "TAVILY_ERROR", message, true);
+      trace.setExecutionResult({
+        success: false,
+        error: "tavily_error:market_research_unavailable",
+        action_taken: "vetoed",
+        market_research: null,
+        agent_wallet_spend: spend as unknown as Record<string, unknown> | null,
+      });
+      persistTrace(this.db, trace);
+      return;
+    }
+
     let nebiusReview: NebiusReview | null = null;
     try {
       this.setLoopStatus("NEBIUS_REVIEW");
-      nebiusReview = await this.reviewWithNebius(signal, portfolio, market, trace.action, spend);
+      nebiusReview = await this.reviewWithNebius(signal, portfolio, market, trace.action, spend, marketResearch);
     } catch (e) {
       const message = sanitizeError(e);
       console.warn("model review failed:", message);
@@ -379,6 +420,7 @@ class AgentLoop {
         error: "model_review_error:model_review_unavailable",
         action_taken: "vetoed",
         nebius_review: null,
+        market_research: marketResearch as unknown as Record<string, unknown> | null,
         agent_wallet_spend: spend as unknown as Record<string, unknown> | null,
       });
       persistTrace(this.db, trace);
@@ -393,6 +435,7 @@ class AgentLoop {
         error: "nebius_veto",
         action_taken: "vetoed",
         nebius_review: nebiusReview as unknown as Record<string, unknown>,
+        market_research: marketResearch as unknown as Record<string, unknown> | null,
         agent_wallet_spend: spend as unknown as Record<string, unknown> | null,
       });
       persistTrace(this.db, trace);
@@ -409,6 +452,7 @@ class AgentLoop {
         error: `vetoed:${verdict.reason}`,
         action_taken: "vetoed",
         nebius_review: nebiusReview as unknown as Record<string, unknown> | null,
+        market_research: marketResearch as unknown as Record<string, unknown> | null,
         agent_wallet_spend: spend as unknown as Record<string, unknown> | null,
       });
       persistTrace(this.db, trace);
@@ -422,6 +466,7 @@ class AgentLoop {
     trace.setExecutionResult({
       ...(result as unknown as Record<string, unknown>),
       nebius_review: nebiusReview as unknown as Record<string, unknown> | null,
+      market_research: marketResearch as unknown as Record<string, unknown> | null,
       agent_wallet_spend: spend as unknown as Record<string, unknown> | null,
     });
 
@@ -445,6 +490,7 @@ class AgentLoop {
     market: MarketState,
     action: NonNullable<ReturnType<typeof decide>["action"]>,
     spend: AgentWalletSpend | null,
+    marketResearch: MarketResearchEvidence | null,
   ): Promise<NebiusReview | null> {
     if (!this.nebius) return null;
 
@@ -455,11 +501,29 @@ class AgentLoop {
       action,
       riskSnapshot: this.risk.snapshot(),
       agentWalletSpend: spend as unknown as Record<string, unknown> | null,
+      marketResearch,
     });
     console.log(
       `Model review (${review.provider === "nebius" ? "primary" : "secondary"}): approved=${review.approved} risk=${review.risk_level} latency=${review.latency_ms}ms ${review.rationale}`,
     );
     return review;
+  }
+
+  private async fetchMarketResearch(
+    signal: Signal,
+    market: MarketState,
+    action: NonNullable<ReturnType<typeof decide>["action"]>,
+  ): Promise<MarketResearchEvidence | null> {
+    if (!appConfig.tavily.enabled || action.side === "hold") return null;
+    this.setLoopStatus("TAVILY_RESEARCH");
+    if (!this.marketResearch) {
+      throw new TavilyMarketResearchError(this.marketResearchInitError ?? "Tavily market research client unavailable");
+    }
+    const evidence = await this.marketResearch.researchDecision({ signal, market, action });
+    console.log(
+      `Tavily evidence: sources=${evidence.result_count} credits=${evidence.credits ?? "?"} request=${evidence.request_id ?? "?"}`,
+    );
+    return evidence;
   }
 
   private async applyExecutionResult(result: ExecutionResult, actionSide: string, preAccountValue: number): Promise<void> {

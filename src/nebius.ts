@@ -9,7 +9,7 @@ import { createOpenAICompatible, type OpenAICompatibleProvider } from "@ai-sdk/o
 import { createOpenAI, type OpenAIProvider } from "@ai-sdk/openai";
 import { Output, ToolLoopAgent, stepCountIs, tool, type LanguageModel } from "ai";
 import { z } from "zod";
-import type { ActionOutput, MarketState, PortfolioState, Signal } from "./types.js";
+import type { ActionOutput, MarketResearchEvidence, MarketState, PortfolioState, Signal } from "./types.js";
 import { appConfig, optionalSecretEnv, secretEnv } from "./config.js";
 
 const reviewSchema = z.object({
@@ -43,6 +43,7 @@ type ReviewInput = {
   action: ActionOutput;
   riskSnapshot: Record<string, unknown>;
   agentWalletSpend: Record<string, unknown> | null;
+  marketResearch: MarketResearchEvidence | null;
 };
 
 export interface NebiusHealth {
@@ -149,10 +150,10 @@ export class NebiusRiskAgent {
     const tools = {
       inspectTradeContext: tool({
         description:
-          "Inspect the exact HyperFlow paid signal, wallet spend receipt, portfolio, market, proposed action, and risk snapshot for this decision tick.",
+          "Inspect the exact HyperFlow paid signal, wallet spend receipt, Tavily source evidence, portfolio, market, proposed action, and risk snapshot for this decision tick.",
         inputSchema: z.object({
           section: z
-            .enum(["full", "signal", "payment", "portfolio", "market", "action", "risk"])
+            .enum(["full", "signal", "payment", "research", "portfolio", "market", "action", "risk"])
             .optional()
             .describe("The context section to inspect. Use full unless narrowing a specific risk."),
         }),
@@ -173,9 +174,10 @@ export class NebiusRiskAgent {
         "You are HyperFlow's production risk-review agent.",
         "HyperFlow uses a Circle Agent Wallet to pay for market intelligence, then may execute on Hyperliquid.",
         "Do not invent prices, balances, receipts, positions, or transactions.",
-        "Inspect the provided trade context before producing the final structured review.",
-        "Approve only when the proposed action is coherent with the paid signal, wallet spend, portfolio state, and risk snapshot.",
+        "Inspect the provided trade context and Tavily source evidence before producing the final structured review.",
+        "Approve only when the proposed action is coherent with the paid signal, wallet spend, Tavily evidence, portfolio state, and risk snapshot.",
         "Veto obvious operational errors, impossible trades, missing payment context for trade actions, or risk-limit violations.",
+        "For non-hold trade actions, treat missing Tavily evidence as an operational risk.",
       ].join(" "),
       tools,
       output,
@@ -291,6 +293,7 @@ function buildReviewContext(input: ReviewInput): Record<string, unknown> {
   return {
     signal: input.signal,
     agent_wallet_spend: input.agentWalletSpend,
+    market_research: input.marketResearch,
     portfolio: input.portfolio,
     market: input.market,
     proposed_action: input.action,
@@ -300,6 +303,7 @@ function buildReviewContext(input: ReviewInput): Record<string, unknown> {
       primary_review_provider: "nebius",
       secondary_review_provider: appConfig.secondaryReview.enabled ? "openai" : null,
       paid_signal_required_for_trade: input.action.side !== "hold",
+      tavily_research_required_for_trade: appConfig.tavily.enabled && input.action.side !== "hold",
       all_model_failures_block_tick: true,
     },
   };
@@ -311,6 +315,7 @@ function buildPromptSummary(context: Record<string, unknown>): Record<string, un
   const market = context.market as MarketState;
   const action = context.proposed_action as ActionOutput;
   const spend = context.agent_wallet_spend as Record<string, unknown> | null;
+  const research = context.market_research as MarketResearchEvidence | null;
 
   return {
     symbol: signal.symbol,
@@ -324,6 +329,8 @@ function buildPromptSummary(context: Record<string, unknown>): Record<string, un
     proposed_size_usd: action.size_usd,
     proposed_leverage: action.leverage,
     hold_reason: action.hold_reason,
+    tavily_source_count: research?.result_count ?? 0,
+    tavily_top_urls: research?.sources.slice(0, 3).map((source) => source.url) ?? [],
   };
 }
 
@@ -333,6 +340,8 @@ function selectContextSection(context: Record<string, unknown>, section: string)
       return context.signal;
     case "payment":
       return context.agent_wallet_spend;
+    case "research":
+      return context.market_research;
     case "portfolio":
       return context.portfolio;
     case "market":

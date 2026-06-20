@@ -38,6 +38,31 @@ export interface MarketState {
   funding_rate_8h_pct: number;
 }
 
+// ---- Market research evidence ----
+
+export interface MarketResearchSource {
+  title: string;
+  url: string;
+  content: string;
+  score: number | null;
+  published_date: string | null;
+  favicon: string | null;
+}
+
+export interface MarketResearchEvidence {
+  provider: "tavily";
+  query: string;
+  topic: string;
+  time_range: string;
+  search_depth: string;
+  searched_at_ms: number;
+  request_id: string | null;
+  response_time_seconds: number | null;
+  credits: number | null;
+  result_count: number;
+  sources: MarketResearchSource[];
+}
+
 // ---- Action ----
 
 export type Side = "long" | "short" | "close" | "hold";

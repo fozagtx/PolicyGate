@@ -16,6 +16,7 @@
   "dependencies": {
     "@ai-sdk/openai": "^3.0.73",
     "@ai-sdk/openai-compatible": "^2.0.51",
+    "@tavily/core": "^0.7.6",
     "ai": "^6.0.208",
     "better-sqlite3": "^11.6.0",
     "cors": "^2.8.5",

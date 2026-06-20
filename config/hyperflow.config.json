@@ -78,6 +78,16 @@
     "maxTokens": 500,
     "temperature": 0.1
   },
+  "tavily": {
+    "enabled": true,
+    "projectId": "hyperflow",
+    "topic": "news",
+    "timeRange": "day",
+    "searchDepth": "basic",
+    "maxResults": 5,
+    "maxSnippetChars": 360,
+    "timeoutMs": 10000
+  },
   "process": {
     "agentPollIntervalSeconds": 2,
     "logLevel": "INFO",

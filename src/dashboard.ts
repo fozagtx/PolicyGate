@@ -296,6 +296,7 @@ function recentTraces(db: Database.Database): Record<string, unknown>[] {
       const execution = full.execution_result ?? {};
       const signal = full.signal ?? {};
       const nebius = execution.nebius_review ?? null;
+      const marketResearch = execution.market_research ?? null;
       const agentWalletSpend = execution.agent_wallet_spend ?? null;
       return {
         trace_id: row.trace_id,
@@ -317,6 +318,9 @@ function recentTraces(db: Database.Database): Record<string, unknown>[] {
         order_id: execution.order_id,
         exec_error: execution.error,
         nebius_review: nebius,
+        market_research: marketResearch,
+        tavily_source_count: Number(marketResearch?.result_count ?? 0),
+        tavily_sources: Array.isArray(marketResearch?.sources) ? marketResearch.sources.slice(0, 5) : [],
         agent_wallet_spend: agentWalletSpend,
       };
     });

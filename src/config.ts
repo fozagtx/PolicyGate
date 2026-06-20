@@ -81,6 +81,16 @@ export interface AppConfig {
     maxTokens: number;
     temperature: number;
   };
+  tavily: {
+    enabled: boolean;
+    projectId: string;
+    topic: "general" | "news" | "finance";
+    timeRange: "day" | "week" | "month" | "year" | "d" | "w" | "m" | "y";
+    searchDepth: "basic" | "advanced" | "fast" | "ultra-fast";
+    maxResults: number;
+    maxSnippetChars: number;
+    timeoutMs: number;
+  };
   process: {
     agentPollIntervalSeconds: number;
     logLevel: string;

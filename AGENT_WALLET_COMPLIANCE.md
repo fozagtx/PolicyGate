@@ -1,6 +1,6 @@
 # Circle Agent Wallet Compliance
 
-HyperFlow uses Circle Agent Wallet in the TypeScript agent workflow.
+HyperFlow uses Circle Agent Wallet in the live agent trading workflow.
 
 ## Workflow
 
@@ -24,6 +24,7 @@ HyperFlow uses Circle Agent Wallet in the TypeScript agent workflow.
 | Receipt / ledger | SQLite table `agent_wallet_spend_ledger` |
 | User-visible API | `GET /agent-wallet` and `/state.agent_wallet` |
 | Starter-kit pattern | Framework-agnostic Circle CLI wrapper, matching `packages/circle-tools` in the Agent Stack ecosystem kits |
+| Live source evidence | Tavily sources are attached to non-hold trade candidates before model review |
 
 ## Environment
 
@@ -47,6 +48,7 @@ Then put the wallet address and chain in `config/hyperflow.config.json`.
 - `/agent-wallet`: wallet address, chain, spend cap, balance, recent spend ledger
 - `/state`: includes `agent_wallet.spend`, `cctp.bridges`, and `circle_bridge.transfers`
 - `traces.execution_result.agent_wallet_spend`: per-decision receipt link between payment and trade decision
+- `traces.execution_result.market_research`: Tavily query, request id, credits, and source URLs for reviewed trade candidates
 - dashboard Agent Wallet bridge panel: Arc Testnet -> Base Sepolia transfer ledger and trigger button
 
 ## Sources

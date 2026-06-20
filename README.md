@@ -1,6 +1,8 @@
 # HyperFlow
 
-HyperFlow is a TypeScript agent workflow where a Circle Agent Wallet buys paid market intelligence, logs the spend, asks Nebius for a second-pass review, and executes the approved action on Hyperliquid testnet. If the primary review request fails, the backend uses a configured secondary model helper for the same review contract; the dashboard does not expose a separate provider panel.
+Agent wallet trading desk for paid signals, live source evidence, risk review, and Hyperliquid execution.
+
+HyperFlow is an agent wallet trading app where a Circle Agent Wallet buys paid market intelligence, attaches receipts and live source evidence to each decision, runs model review and risk checks, then executes approved actions on Hyperliquid testnet. If the primary review request fails, the backend uses a configured secondary model helper for the same review contract; the dashboard does not expose a separate provider panel.
 
 It is not a standalone payment demo. The wallet is part of the operating loop: pay for the signal, attach the receipt to the decision, enforce budget/risk policy, then trade or hold.
 
@@ -9,11 +11,12 @@ It is not a standalone payment demo. The wallet is part of the operating loop: p
 ```mermaid
 flowchart LR
   UI[Svelte Dashboard] --> API[Express State API]
-  Loop[TypeScript Agent Loop] --> Pay[Circle Agent Wallet<br/>circle services pay]
+  Loop[Agent Loop] --> Pay[Circle Agent Wallet<br/>circle services pay]
   Pay --> Signal[Paid x402 Signal Service]
   Pay --> Ledger[(SQLite Spend Ledger)]
   Signal --> Decision[Decision Engine]
-  Decision --> Nebius[Vercel AI SDK Agent<br/>Nebius DeepSeek V4 Pro]
+  Decision --> Tavily[Tavily source evidence]
+  Tavily --> Nebius[Vercel AI SDK Agent<br/>Nebius DeepSeek V4 Pro]
   Nebius -. request error .-> Helper[Secondary model helper<br/>same review schema]
   Nebius --> Risk[Risk Gate]
   Helper --> Risk
@@ -36,7 +39,6 @@ flowchart LR
 | Receipt / spend ledger | ✓ | SQLite `agent_wallet_spend_ledger` table and dashboard view |
 | Crosschain support | ✓ | Circle bridge and CCTP routes for configured testnet flows |
 | Frontend | ✓ | Svelte dashboard served by [src/dashboard.ts](src/dashboard.ts) |
-| TypeScript port | ✓ | Runtime source is under [src](src) and builds with `tsc` |
 
 ## What Runs
 
@@ -44,8 +46,9 @@ flowchart LR
 | --- | --- | --- |
 | Circle payment | ✓ | pays the live x402 signal endpoint |
 | Spend logging | ✓ | stores seller, chain, amount, tx hash, and raw receipt |
+| Tavily source evidence | ✓ | searches current market/news sources for non-hold trade candidates |
 | Nebius agent review | ✓ | DeepSeek V4 Pro through Vercel AI SDK; secondary model helper is used only after a primary request failure |
-| Hyperliquid execution | ✓ | submits approved actions through the TypeScript SDK |
+| Hyperliquid execution | ✓ | submits approved actions through the Hyperliquid SDK |
 | Dashboard | ✓ | shows wallet state, ledger, decisions, and bridge history |
 | Agent Wallet bridge | ✓ | Arc Testnet -> Base Sepolia through Circle CLI |
 | CCTP | ✓ | Arc Testnet -> Arbitrum Sepolia route when configured |
@@ -65,6 +68,7 @@ Public runtime settings are in [config/hyperflow.config.json](config/hyperflow.c
 | `cctp` | Arc Testnet -> Arbitrum Sepolia timing and recipient |
 | `nebius` | Nebius Token Factory base URL, DeepSeek V4 Pro model, and review limits |
 | secondary review helper | secondary model settings used after primary review request failure |
+| `tavily` | source evidence search tuning for non-hold trade candidates |
 | `process` | SQLite path, dashboard port, and loop interval |
 
 Secrets are in [.env.example](.env.example). Keep the real `.env` local and uncommitted:
@@ -73,6 +77,7 @@ Secrets are in [.env.example](.env.example). Keep the real `.env` local and unco
 | --- | --- |
 | `HL_API_WALLET_PK` | Hyperliquid API wallet signing |
 | `NEBIUS_API_KEY` | live Nebius review |
+| `TAVILY_API_KEY` | live source evidence search |
 | `CONSUMER_PK` | direct CCTP route |
 | `CCTP_WALLET_PK` | standalone CCTP command |
 | `X402_FACILITATOR_PK` | optional seller-side facilitator |
@@ -124,7 +129,7 @@ Useful endpoints:
 - [src/loop.ts](src/loop.ts): agent loop from paid signal to trade execution.
 - [src/circle-agent-wallet.ts](src/circle-agent-wallet.ts): Circle CLI Agent Wallet payment wrapper and spend ledger.
 - [src/nebius.ts](src/nebius.ts): Vercel AI SDK `ToolLoopAgent` using Nebius DeepSeek V4 Pro.
-- [src/executor.ts](src/executor.ts): Hyperliquid TypeScript SDK execution.
+- [src/executor.ts](src/executor.ts): Hyperliquid SDK execution.
 - [src/risk.ts](src/risk.ts): budget, loss, leverage, and liquidation guardrails.
 - [src/cctp.ts](src/cctp.ts): direct Circle CCTP V2 Arc Testnet to Arbitrum Sepolia route.
 - [src/circle-bridge.ts](src/circle-bridge.ts): Circle CLI bridge transfer route.
