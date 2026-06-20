@@ -1,0 +1,79 @@
+{
+  "services": {
+    "paidSignalService": "https://alphadrip.baserep.xyz"
+  },
+  "arc": {
+    "chainId": 5042002,
+    "rpcUrl": "https://rpc.testnet.arc.network",
+    "usdc": "0x3600000000000000000000000000000000000000"
+  },
+  "facilitator": {
+    "port": 8090
+  },
+  "circleAgentWallet": {
+    "cliBin": "circle",
+    "commandTimeoutMs": 60000,
+    "address": "0xa13f3723d3128686fdf57787d6610af5fce256e1",
+    "chain": "ARC-TESTNET",
+    "maxUsdcPerCall": 0.01,
+    "serviceTimeoutSeconds": 30
+  },
+  "circleBridge": {
+    "enabled": true,
+    "triggerEnabled": true,
+    "fromChain": "ARC-TESTNET",
+    "toChain": "BASE-SEPOLIA",
+    "sourceAddress": "0xBb67c7386e1e4Fb9931129CA09FE577F4B3fFb97",
+    "recipientAddress": "0xa13f3723d3128686fdf57787d6610af5fce256e1",
+    "defaultAmountUsdc": 1,
+    "commandTimeoutMs": 120000
+  },
+  "hyperliquid": {
+    "network": "testnet",
+    "symbol": "BTC",
+    "masterAddress": "0xBb67c7386e1e4Fb9931129CA09FE577F4B3fFb97"
+  },
+  "risk": {
+    "confidenceThreshold": 0.6,
+    "takeProfitPct": 0.0012,
+    "stopLossPct": 0.0008,
+    "timeStopSeconds": 60,
+    "maxLeverage": 5,
+    "dailyLossPct": 0.02,
+    "liquidationMarginRatio": 0.4,
+    "kellyFraction": 0.25,
+    "maxPositionPct": 0.05,
+    "emergencyHaltPct": 0.5
+  },
+  "cctp": {
+    "enabled": true,
+    "triggerEnabled": true,
+    "arbitrumSepoliaRpcUrl": "https://sepolia-rollup.arbitrum.io/rpc",
+    "irisApiBase": "https://iris-api-sandbox.circle.com/v2",
+    "attestationMaxWaitSeconds": 300,
+    "attestationPollIntervalSeconds": 5,
+    "recipientAddress": ""
+  },
+  "telegram": {
+    "alertPrefix": "HYPERFLOW"
+  },
+  "reasoning": {
+    "traceSchemaVersion": 1,
+    "traceHashAlgorithm": "sha256"
+  },
+  "nebius": {
+    "enabled": true,
+    "baseUrl": "https://api.tokenfactory.nebius.com/v1/",
+    "model": "deepseek-ai/DeepSeek-R1-0528",
+    "vetoEnabled": true,
+    "timeoutMs": 10000,
+    "maxTokens": 500,
+    "temperature": 0.1
+  },
+  "process": {
+    "agentPollIntervalSeconds": 2,
+    "logLevel": "INFO",
+    "sqlitePath": "./data/hyperflow.sqlite",
+    "statePort": 8086
+  }
+}
