@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- shield/desk background -->
+  <rect x="8" y="20" width="48" height="36" rx="2" stroke="#181916" stroke-width="2.5" fill="#fffdf7"/>
+  <!-- top divider / desk edge -->
+  <path d="M8 28h48" stroke="#181916" stroke-width="2.5"/>
+  <!-- approval checkmark -->
+  <path d="M25 43l5 6 9-12" stroke="#217047" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- approval stamp (crosshair + gold) -->
+  <circle cx="48" cy="10" r="8" fill="#d7c35f" stroke="#181916" stroke-width="2"/>
+  <path d="M44 10h8M48 6v8" stroke="#181916" stroke-width="2" stroke-linecap="round"/>
+</svg>

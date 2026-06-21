@@ -1,42 +1,15 @@
 {
-  "name": "hyper-flow",
-  "version": "0.2.0",
-  "description": "Autonomous Hyperliquid perps agent with Circle Agent Wallet",
-  "type": "module",
+  "name": "anna-app-policygate",
+  "private": true,
+  "version": "1.0.0",
+  "description": "PolicyGate Anna App bundle for policy-backed case approvals.",
   "scripts": {
-    "build": "tsc && npm run build:client",
-    "build:client": "vite build --config vite.config.ts",
-    "start": "tsx src/loop.ts",
-    "start:prod": "node dist/loop.js",
-    "dev": "tsx watch src/loop.ts",
-    "serve": "tsx src/serve.ts",
-    "cctp": "tsx src/cctp.ts",
-    "bridge:agent-wallet": "tsx src/circle-bridge.ts",
-    "hl:fund": "tsx src/hyperliquid-funding.ts"
-  },
-  "dependencies": {
-    "@ai-sdk/openai": "^3.0.73",
-    "@ai-sdk/openai-compatible": "^2.0.51",
-    "@tavily/core": "^0.7.6",
-    "ai": "^6.0.208",
-    "better-sqlite3": "^11.6.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.0",
-    "ethers": "^6.13.0",
-    "express": "^4.21.0",
-    "hyperliquid": "^1.0.0",
-    "zod": "^4.4.3"
+    "dev": "anna-app dev",
+    "validate": "anna-app validate --strict",
+    "test": "vitest run"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^7.1.2",
-    "@types/better-sqlite3": "^7.6.0",
-    "@types/cors": "^2.8.0",
-    "@types/express": "^4.17.0",
-    "@types/node": "^22.0.0",
-    "esbuild": "^0.28.1",
-    "svelte": "^5.56.3",
-    "tsx": "^4.19.0",
-    "typescript": "^5.6.0",
-    "vite": "^8.0.16"
+    "@anna-ai/cli": "^0.1.22",
+    "vitest": "^2.1.0"
   }
 }

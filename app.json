@@ -1,0 +1,18 @@
+{
+  "slug": "policygate",
+  "name": "PolicyGate",
+  "version": "0.1.0",
+  "tagline": "Policy-backed approval gates for Anna.",
+  "description": "PolicyGate gives Anna a focused operations window for reviewing approval cases against evidence and policy. The app invokes the bundled policygate-case Executa for analysis and decision recording, shows structured case facts, risk, policy evidence, a proposed action, and an audit timeline, with send behavior limited to an audit-only simulation.",
+  "category": "business",
+  "logo_url": "https://raw.githubusercontent.com/fozagtx/PolicyGate/main/bundle/icon.svg",
+  "cover_url": "https://github.com/fozagtx/PolicyGate",
+  "screenshots": [],
+  "homepage_url": "https://github.com/fozagtx/PolicyGate",
+  "support_url": "https://github.com/fozagtx/PolicyGate/issues",
+  "privacy_url": "https://github.com/fozagtx/PolicyGate",
+  "pricing_model": "free",
+  "bundled_executas": {
+    "policygate-case": { "path": "./executas/policygate-case-python" }
+  }
+}

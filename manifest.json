@@ -1,0 +1,65 @@
+{
+  "schema": 2,
+  "permissions": [
+    "tools.invoke",
+    "chat.write_message",
+    "storage.read",
+    "storage.write",
+    "ui.svg"
+  ],
+  "required_executas": [
+    {
+      "tool_id": "bundled:policygate-case",
+      "min_version": "1.0.0",
+      "version": "latest"
+    }
+  ],
+  "optional_executas": [],
+  "system_prompt_addendum": "The user has the PolicyGate app open. Use the bundled policygate-case tool as the source of truth for case analysis and decision recording. The app calls method='case' with arguments {action, ...}; do not invent approval outcomes outside the tool result. Follow the PolicyGate SKILL.md behavior in executas/policygate-ops for evidence-first review and audit discipline.",
+  "user_message_prefix_template": "[PolicyGate] {user_message}",
+  "tags": ["approval", "risk", "policy", "operations", "audit"],
+  "ui": {
+    "bundle": {
+      "format": "static-spa",
+      "entry": "index.html",
+      "external_origins": []
+    },
+    "views": [
+      {
+        "name": "main",
+        "title": "PolicyGate",
+        "default": true,
+        "entry": "index.html",
+        "min_size": { "w": 720, "h": 560 },
+        "default_size": { "w": 1120, "h": 760 },
+        "max_size": { "w": 1440, "h": 980 },
+        "resizable": true,
+        "movable": true,
+        "single_instance": true,
+        "icon": "icon.svg"
+      }
+    ],
+    "host_api": {
+      "tools": ["required:bundled:policygate-case"],
+      "chat": ["write_message"],
+      "artifact": [],
+      "llm": [],
+      "fs": [],
+      "storage": ["get", "set"],
+      "prefs": [],
+      "window": ["set_title"]
+    },
+    "csp_overrides": {
+      "img-src": ["'self'", "data:", "blob:"],
+      "font-src": ["'self'", "data:"],
+      "style-src": ["'self'"],
+      "script-src": ["'self'"]
+    },
+    "state_merge": "last_writer_wins"
+  },
+  "dev": {
+    "fixtures": [],
+    "seed_storage": {},
+    "user_id": 1
+  }
+}

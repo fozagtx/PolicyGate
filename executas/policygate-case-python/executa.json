@@ -1,0 +1,21 @@
+{
+  "slug": "policygate-case",
+  "name": "PolicyGate Case",
+  "version": "1.0.0",
+  "executa_type": "tool",
+  "description": "Policy-backed case analysis and approval recording for the PolicyGate Anna App.",
+
+  "tool_id": "tool-test-policygate-case-12345678",
+  "type": "python",
+  "enabled": true,
+
+  "distribution": {
+    "active": "local",
+    "profiles": {
+      "local": {
+        "type": "local",
+        "supports_protocol": true
+      }
+    }
+  }
+}

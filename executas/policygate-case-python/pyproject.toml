@@ -1,0 +1,27 @@
+[project]
+name = "tool-test-policygate-case-12345678"
+version = "1.0.0"
+description = "PolicyGate Case — Executa stdio tool plugin for policy-backed approvals"
+requires-python = ">=3.10"
+authors = [{ name = "PolicyGate" }]
+license = { text = "MIT" }
+dependencies = [
+  "openai>=2.0.0",
+  "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+  "anna-executa-test>=0.1.0",
+]
+
+[project.scripts]
+"tool-test-policygate-case-12345678" = "policygate_case_plugin:main"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["policygate_case_plugin"]

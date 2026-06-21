@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>PolicyGate</title>
+    <link rel="icon" type="image/svg+xml" href="icon.svg" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand__mark" aria-hidden="true"></span>
+          <div>
+            <h1>PolicyGate</h1>
+            <p id="case-status">Open in Anna to connect dispatcher</p>
+          </div>
+        </div>
+        <div class="topbar__right">
+          <span id="risk-badge" class="risk-badge risk-badge--unknown">Risk pending</span>
+          <span id="conn-status" class="conn conn--off" title="Disconnected"></span>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <aside class="input-pane" aria-label="Case intake">
+          <div class="pane-head">
+            <h2>Case Input</h2>
+            <button id="load-last-btn" class="btn btn--quiet" type="button" title="Load saved draft">Load</button>
+          </div>
+          <label class="field">
+            <span>Case ID</span>
+            <input id="case-id" type="text" autocomplete="off" placeholder="CASE-1042" />
+          </label>
+          <label class="field field--grow">
+            <span>Request, facts, and submitted context</span>
+            <textarea id="case-input" spellcheck="true" placeholder="Paste the approval case, requestor context, dollar amount, evidence notes, exceptions, and any policy references."></textarea>
+          </label>
+          <div class="button-row">
+            <button id="analyze-btn" class="btn btn--primary" type="button">Analyze</button>
+            <button id="clear-btn" class="btn" type="button">Clear</button>
+            <button id="sample-low-btn" class="btn btn--quiet" type="button">Sample: Low Risk</button>
+            <button id="sample-high-btn" class="btn btn--quiet" type="button">Sample: High Risk</button>
+          </div>
+          <div id="error-box" class="error-box" hidden></div>
+        </aside>
+
+        <section class="review-pane" aria-label="Case review">
+          <div class="review-grid">
+            <section class="panel panel--facts">
+              <div class="pane-head">
+                <h2>Case Facts</h2>
+                <span id="confidence-pill" class="pill">No analysis</span>
+              </div>
+              <dl id="facts-list" class="facts-list">
+                <div><dt>Requestor</dt><dd>--</dd></div>
+                <div><dt>Amount</dt><dd>--</dd></div>
+                <div><dt>Category</dt><dd>--</dd></div>
+                <div><dt>Deadline</dt><dd>--</dd></div>
+              </dl>
+            </section>
+
+            <section class="panel panel--draft">
+              <div class="pane-head">
+                <h2>Proposed Action</h2>
+                <span id="recommendation-pill" class="pill">Pending</span>
+              </div>
+              <textarea id="draft-output" spellcheck="true" placeholder="Analysis will produce a proposed approval action or decision draft." disabled></textarea>
+            </section>
+
+            <section class="panel panel--evidence">
+              <div class="pane-head">
+                <h2>Evidence</h2>
+                <span id="evidence-count" class="pill">0 items</span>
+              </div>
+              <div id="evidence-list" class="card-list empty-state">No evidence returned yet.</div>
+            </section>
+
+            <section class="panel panel--policy">
+              <div class="pane-head">
+                <h2>Policy Checks</h2>
+                <span id="policy-count" class="pill">0 checks</span>
+              </div>
+              <div id="policy-list" class="card-list empty-state">No policy checks returned yet.</div>
+            </section>
+          </div>
+
+          <section class="decision-panel">
+            <div class="decision-controls">
+              <button id="approve-btn" class="btn btn--approve" type="button" disabled>Approve</button>
+              <button id="reject-btn" class="btn btn--reject" type="button" disabled>Reject</button>
+              <button id="escalate-btn" class="btn btn--escalate" type="button" disabled>Escalate</button>
+              <button id="send-btn" class="btn btn--send" type="button" disabled>Send (Simulated)</button>
+              <button id="export-btn" class="btn" type="button" disabled>Export Audit</button>
+            </div>
+            <label class="field field--decision">
+              <span>Decision note</span>
+              <input id="decision-note" type="text" placeholder="Required context for approve, reject, or escalate" />
+            </label>
+          </section>
+
+          <section class="panel timeline-panel">
+            <div class="pane-head">
+              <h2>Audit Timeline</h2>
+              <span id="timeline-count" class="pill">0 events</span>
+            </div>
+            <ol id="timeline" class="timeline">
+              <li class="timeline__empty">Analysis and recorded decisions will appear here.</li>
+            </ol>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <script src="anna-tool-ids.js" defer></script>
+    <script src="app.js" type="module"></script>
+  </body>
+</html>
