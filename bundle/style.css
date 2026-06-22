@@ -65,14 +65,10 @@ button {
 }
 
 .brand__mark {
-  width: 34px;
-  height: 34px;
-  border: 2px solid var(--ink);
-  background:
-    linear-gradient(90deg, transparent 47%, var(--ink) 47% 53%, transparent 53%),
-    linear-gradient(0deg, transparent 47%, var(--ink) 47% 53%, transparent 53%),
-    #d7c35f;
-  box-shadow: 4px 4px 0 var(--ink);
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  background: url("icon.svg") center / contain no-repeat;
 }
 
 h1,

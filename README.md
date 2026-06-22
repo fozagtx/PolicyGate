@@ -84,9 +84,9 @@ Anna App publishing requires Anna to mark the account as a Verified Developer. F
 
 ```bash
 pnpm exec anna-app apps push
-pnpm exec anna-app apps cut 0.1.0
+pnpm exec anna-app apps cut 0.1.1
 pnpm exec anna-app apps submit-review policygate
-pnpm exec anna-app apps release 0.1.0
+pnpm exec anna-app apps release 0.1.1
 ```
 
 `apps push` resolves the bundled `policygate-case` Tool into a server-minted id, writes `.anna/executas.lock.json`, and writes `bundle/anna-tool-ids.js` for the UI.

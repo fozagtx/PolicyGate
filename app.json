@@ -1,9 +1,9 @@
 {
   "slug": "policygate",
   "name": "PolicyGate",
-  "version": "0.1.0",
-  "tagline": "Policy-backed approval gates for Anna.",
-  "description": "PolicyGate gives Anna a focused operations window for reviewing approval cases against evidence and policy. The app invokes the bundled policygate-case Executa for analysis and decision recording, shows structured case facts, risk, policy evidence, a proposed action, and an audit timeline, with external execution kept outside the app.",
+  "version": "0.1.1",
+  "tagline": "Review approvals before anyone acts.",
+  "description": "PolicyGate helps teams review approval requests with the facts, policy checks, risk level, recommended action, and audit notes in one place. A person can approve, reject, or escalate each case before anything happens.",
   "category": "productivity",
   "logo_url": "https://raw.githubusercontent.com/fozagtx/PolicyGate/main/bundle/icon.svg",
   "cover_url": "https://github.com/fozagtx/PolicyGate",
