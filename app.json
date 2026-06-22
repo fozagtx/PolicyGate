@@ -1,7 +1,7 @@
 {
   "slug": "policygate",
   "name": "PolicyGate",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "tagline": "Review approvals before anyone acts.",
   "description": "PolicyGate helps teams review approval requests with the facts, policy checks, risk level, recommended action, and audit notes in one place. A person can approve, reject, or escalate each case before anything happens.",
   "category": "productivity",

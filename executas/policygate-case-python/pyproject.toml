@@ -1,6 +1,6 @@
 [project]
-name = "policygate-case"
-version = "1.0.0"
+name = "tool-zanbuilds-policygate-case-rveqx8hp"
+version = "1.0.1"
 description = "PolicyGate Case — Executa stdio tool plugin for policy-backed approvals"
 requires-python = ">=3.10"
 authors = [{ name = "PolicyGate" }]
@@ -14,7 +14,7 @@ dev = [
 ]
 
 [project.scripts]
-"policygate-case" = "policygate_case_plugin:main"
+"tool-zanbuilds-policygate-case-rveqx8hp" = "policygate_case_plugin:main"
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]

@@ -150,7 +150,7 @@ sampling = SamplingClient(write_frame=_write_frame)
 
 MANIFEST: dict[str, Any] = {
     "display_name": "PolicyGate Case",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": (
         "Policy-backed approval case analysis with local state, evidence "
         "retrieval, risk checks, drafts, decision recording, and audit export."

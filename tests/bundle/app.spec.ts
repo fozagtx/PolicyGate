@@ -54,9 +54,27 @@ describe("policygate app package", () => {
     const skill = readProjectFile("executas/policygate-ops/SKILL.md");
     const executa = JSON.parse(
       readProjectFile("executas/policygate-case-python/executa.json"),
-    ) as { tool_id: string };
+    ) as {
+      tool_id: string;
+      distribution: {
+        type: string;
+        executable_name: string;
+        supports_protocol: boolean;
+        binary_urls: Record<string, unknown>;
+      };
+    };
 
-    expect(executa.tool_id).toBe("policygate-case");
+    expect(executa.tool_id).toBe("tool-zanbuilds-policygate-case-rveqx8hp");
+    expect(executa.distribution).toMatchObject({
+      type: "binary",
+      executable_name: "tool-zanbuilds-policygate-case-rveqx8hp",
+      supports_protocol: true,
+    });
+    expect(Object.keys(executa.distribution.binary_urls)).toEqual([
+      "darwin-arm64",
+      "darwin-x86_64",
+      "linux-x86_64",
+    ]);
     expect(skill).toContain("- bundled:policygate-case");
     expect(skill).toContain("A human approval, rejection, or escalation must be recorded");
     expect(skill).not.toContain("CHANGEME");

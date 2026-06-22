@@ -13,6 +13,9 @@ venv/
 dist/
 build/
 coverage/
+package/
+*.spec
+*.tar.gz
 
 .env
 .env.*

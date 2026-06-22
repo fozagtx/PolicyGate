@@ -1,0 +1,101 @@
+name: Build PolicyGate Case Binaries
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "PolicyGate Case release version"
+        required: true
+        default: "1.0.1"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-26
+            platform: darwin-arm64
+          - os: macos-26-intel
+            platform: darwin-x86_64
+          - os: ubuntu-latest
+            platform: linux-x86_64
+
+    env:
+      TOOL_ID: tool-zanbuilds-policygate-case-rveqx8hp
+      EXECUTA_DIR: executas/policygate-case-python
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install build tools
+        working-directory: ${{ env.EXECUTA_DIR }}
+        run: uv sync --dev
+
+      - name: Build executable
+        working-directory: ${{ env.EXECUTA_DIR }}
+        run: |
+          uv run --with pyinstaller pyinstaller \
+            --onefile \
+            --name "$TOOL_ID" \
+            policygate_case_plugin.py
+
+      - name: Package archive
+        working-directory: ${{ env.EXECUTA_DIR }}
+        run: |
+          set -euo pipefail
+          archive="$TOOL_ID-${{ matrix.platform }}.tar.gz"
+          rm -rf package "$archive"
+          mkdir -p package/bin
+          cp "dist/$TOOL_ID" "package/bin/$TOOL_ID"
+          chmod +x "package/bin/$TOOL_ID"
+          cat > package/manifest.json <<EOF
+          {
+            "runtime": {
+              "binary": {
+                "entrypoint": {
+                  "default": "bin/$TOOL_ID"
+                }
+              }
+            }
+          }
+          EOF
+          tar -C package -czf "$archive" .
+          tar tzf "$archive"
+
+      - name: Smoke test archive
+        working-directory: ${{ env.EXECUTA_DIR }}
+        run: |
+          set -euo pipefail
+          archive="$TOOL_ID-${{ matrix.platform }}.tar.gz"
+          tmp="$(mktemp -d)"
+          tar xzf "$archive" -C "$tmp"
+          test -x "$tmp/bin/$TOOL_ID"
+          test -f "$tmp/manifest.json"
+          printf '{"jsonrpc":"2.0","id":1,"method":"health","params":{}}\n' \
+            | "$tmp/bin/$TOOL_ID" \
+            | grep '"ok"'
+
+      - name: Upload release asset
+        working-directory: ${{ env.EXECUTA_DIR }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: policygate-case-v${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          archive="$TOOL_ID-${{ matrix.platform }}.tar.gz"
+          gh release view "$RELEASE_TAG" >/dev/null 2>&1 \
+            || gh release create "$RELEASE_TAG" --title "$RELEASE_TAG" --notes "PolicyGate Case binary release ${{ inputs.version }}"
+          gh release upload "$RELEASE_TAG" "$archive" --clobber

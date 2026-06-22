@@ -1,20 +1,33 @@
 {
   "slug": "policygate-case",
   "name": "PolicyGate Case",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "executa_type": "tool",
   "description": "Policy-backed case analysis and approval recording for the PolicyGate Anna App.",
 
-  "tool_id": "policygate-case",
+  "tool_id": "tool-zanbuilds-policygate-case-rveqx8hp",
   "type": "python",
   "enabled": true,
 
   "distribution": {
-    "active": "local",
-    "profiles": {
-      "local": {
-        "type": "local",
-        "supports_protocol": true
+    "type": "binary",
+    "executable_name": "tool-zanbuilds-policygate-case-rveqx8hp",
+    "supports_protocol": true,
+    "binary_urls": {
+      "darwin-arm64": {
+        "url": "https://github.com/fozagtx/PolicyGate/releases/download/policygate-case-v1.0.1/tool-zanbuilds-policygate-case-rveqx8hp-darwin-arm64.tar.gz",
+        "entrypoint": "bin/tool-zanbuilds-policygate-case-rveqx8hp",
+        "format": "tar.gz"
+      },
+      "darwin-x86_64": {
+        "url": "https://github.com/fozagtx/PolicyGate/releases/download/policygate-case-v1.0.1/tool-zanbuilds-policygate-case-rveqx8hp-darwin-x86_64.tar.gz",
+        "entrypoint": "bin/tool-zanbuilds-policygate-case-rveqx8hp",
+        "format": "tar.gz"
+      },
+      "linux-x86_64": {
+        "url": "https://github.com/fozagtx/PolicyGate/releases/download/policygate-case-v1.0.1/tool-zanbuilds-policygate-case-rveqx8hp-linux-x86_64.tar.gz",
+        "entrypoint": "bin/tool-zanbuilds-policygate-case-rveqx8hp",
+        "format": "tar.gz"
       }
     }
   }
