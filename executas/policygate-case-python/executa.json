@@ -16,16 +16,22 @@
     "binary_urls": {
       "darwin-arm64": {
         "url": "https://github.com/fozagtx/PolicyGate/releases/download/policygate-case-v1.0.1/tool-zanbuilds-policygate-case-rveqx8hp-darwin-arm64.tar.gz",
+        "sha256": "0099a2156bfca0fb9cdc9f1d3a9dc85d9afa3c5481d3df2d99582fc15106e66c",
+        "size": 8535012,
         "entrypoint": "bin/tool-zanbuilds-policygate-case-rveqx8hp",
         "format": "tar.gz"
       },
       "darwin-x86_64": {
         "url": "https://github.com/fozagtx/PolicyGate/releases/download/policygate-case-v1.0.1/tool-zanbuilds-policygate-case-rveqx8hp-darwin-x86_64.tar.gz",
+        "sha256": "3c910ac6de8c24667ce9a763ba659152599143aedf80577abf800301e12c45a6",
+        "size": 9281695,
         "entrypoint": "bin/tool-zanbuilds-policygate-case-rveqx8hp",
         "format": "tar.gz"
       },
       "linux-x86_64": {
         "url": "https://github.com/fozagtx/PolicyGate/releases/download/policygate-case-v1.0.1/tool-zanbuilds-policygate-case-rveqx8hp-linux-x86_64.tar.gz",
+        "sha256": "d42b33e66994f691eaa658cb88c8792169068568b88abf8a54f8b1a8ea463d55",
+        "size": 18726220,
         "entrypoint": "bin/tool-zanbuilds-policygate-case-rveqx8hp",
         "format": "tar.gz"
       }
