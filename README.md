@@ -29,6 +29,18 @@ PolicyGate ships as a complete Anna app package:
 
 The installed chat trigger is `#policygate`.
 
+## User Flow
+
+1. Install PolicyGate from Anna as `@fozagtx/policygate`.
+2. Anna downloads the bundled PolicyGate Case Executa as a binary for the user's platform.
+3. Open an Anna chat and type `#policygate`.
+4. Paste an approval request or operations case into the PolicyGate window.
+5. Click `Analyze` to review case facts, policy checks, evidence, risk level, and a recommended action.
+6. Choose `Approve`, `Reject`, or `Escalate`.
+7. PolicyGate records the decision note and audit timeline for the case.
+
+End users do not need to run a local developer server. The bundled Executa is published as a binary package for macOS ARM64, macOS Intel, and Linux x86_64.
+
 ## Requirements
 
 - Node.js 22+
